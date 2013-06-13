@@ -52,13 +52,22 @@ void setup() {
   SPI.begin();
   
   //Configuracion WDT
-  MCUSR &= ~(1 << WDRF);
-  WDTCSR |= (1 << WDCE) | (1 << WDE);
-  WDTCSR |= (1 << WDP2) | (1 << WDP1) | (1 << WDP0);
-  WDTCSR |= _BV(WDIE);
+//  wdt_disable();
+  
+//  wdt_enable();
+  MCUSR = MCUSR & B11110111;
+  WDTCSR = WDTCSR | B00011000;
+  WDTCSR = B00100001;
+  WDTCSR = WDTCSR | B01000000;
+  MCUSR = MCUSR & B11110111;
+  
+  //WDTCSR |= (1 << WDCE) | (1 << WDE);
+  //WDTCSR |= (1 << WDP2) | (1 << WDP1) | (1 << WDP0);
+  //WDTCSR |= _BV(WDIE);
+  
   
   // Configuracion Serial 
-  Serial.begin(115200);
+  Serial.begin(9600);
   
   // Configuracion de interrupciones
   attachInterrupt(0, incrementaPluviometro, RISING); //Pluviometro
@@ -79,12 +88,7 @@ void incrementaPluviometro(){
 }
 
 ISR(WDT_vect){
-  if (f_wdt == 0){
-    f_wdt = 1;
-  }
-  else{
-    Serial.println("WDT!");
-  }
+  f_wdt++;
 }
 
 void dormirTarjeta(void){
@@ -215,13 +219,16 @@ float aMG(int lectura)
 void loop() {
 //  while(!(Serial.available()));
 //  Serial.read();
-
-if (f_wdt == 1)
-{
-  Serial.println("Despierto");
-  f_wdt = 0;
+  Serial.println("Durmiendo");
+  delay(100);
   dormirTarjeta();
-}
+  digitalWrite(ACT_ACC, HIGH);
+  delay(1000);
+  digitalWrite(ACT_DIST, HIGH);
+  delay(1000);
+  digitalWrite(ACT_IRR, HIGH);
+  delay(1000);
+  Serial.println("Desperto");
 
 
 /*
@@ -241,8 +248,8 @@ if (f_wdt == 1)
   
   Serial.read();
     
-    
+  */  
   //Serial.println(leerXFiltro());
 //  while(1);
-*/
+
 }
